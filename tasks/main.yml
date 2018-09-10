@@ -1,0 +1,30 @@
+---
+# tasks file for awx-install
+
+- name: Install required packages
+  package:
+      name: git
+      state: present
+  become: yes
+
+- name: Disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+  when: ansible_os_family == "RedHat"
+  become: yes
+  tags:
+    - install
+
+- name: Pip install ansible
+  pip:
+    name: ansible 
+  become: yes
+
+- name: Include awx
+  include: install.yml
+  when: awx is defined
+
+- name: Include configure
+  include: configure.yml
+  when: awx is defined

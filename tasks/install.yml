@@ -1,0 +1,36 @@
+---
+# tasks file for awx-install
+- name: Create temporary build directory
+  tempfile:
+    state: directory
+    suffix: build
+  register: tmpdir
+
+- name: git clone awx
+  git:
+    repo: 'https://github.com/ansible/awx.git'
+    dest: "{{ tmpdir.path }}"
+    clone: yes
+
+- name: Configure awx
+  template:
+    src: inventory
+    dest: "{{ tmpdir.path }}/installer/inventory"
+
+- name: Find out what the remote machine's mounts are
+  slurp:
+    src: "{{ tmpdir.path }}/installer/inventory"
+  register: mounts
+
+- name: install awx
+  shell: cd "{{ tmpdir.path }}/installer" && ansible-playbook -i inventory install.yml
+  become: yes
+
+- name: "wait for AWX to come up"
+  uri:
+    url: "{{ awx_address }}"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 300
+  delay: 10

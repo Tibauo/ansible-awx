@@ -1,0 +1,77 @@
+---
+# tasks file for awx-configure
+- name: Create organization
+  uri:
+    url: "http://localhost/api/v2/organizations/"
+    user: "{{ default_admin_user  }}"
+    password: "{{ default_admin_password  }}"
+    body: "{\"name\": \"{{ organisation  }}\"}"
+    headers:
+      Content-Type: "application/json"
+    method: POST
+    force_basic_auth: yes
+    body_format: json
+    status_code: 201
+  tags:
+    - organisation
+
+- name: Get Organization ID
+  uri:
+    url: "http://localhost/api/v2/organizations/?search={{ organisation }}"
+    user: "{{ default_admin_user  }}"
+    password: "{{ default_admin_password  }}"
+    headers:
+      Content-Type: "application/json"
+    method: GET
+    status_code: 200
+    force_basic_auth: yes
+  register: organisation_id
+  tags:
+    - credental
+    - project
+
+- name: Create Credential
+  uri:
+    url: "http://localhost/api/v2/credentials/"
+    user: "{{ default_admin_user  }}"
+    password: "{{ default_admin_password  }}"
+    body: "{\"name\": \"{{ credential_name }}\", \"credential_type\": \"{{ credential_type}}\" ,\"organization\": \"{{ organisation_id.json.results[0].id }}\", \"inputs\": {\"username\": \"{{ git_user }}\", \"password\": \"{{ git_password }}\"}  }"
+    headers:
+      Content-Type: "application/json"
+    method: POST
+    status_code: 201,204
+    force_basic_auth: yes
+    body_format: json
+  tags:
+    - credental
+
+- name: Get Credential ID
+  uri:
+    url: "http://localhost/api/v2/credentials/?search={{ git_user }}"
+    user: "{{ default_admin_user  }}"
+    password: "{{ default_admin_password  }}"
+    headers:
+      Content-Type: "application/json"
+    method: GET
+    status_code: 200
+    force_basic_auth: yes
+  register: credential_id
+  tags:
+    - credental
+    - project
+
+- name: Create project
+  uri:
+    url: "http://localhost/api/v2/projects/"
+    user: "{{ default_admin_user  }}"
+    password: "{{ default_admin_password  }}"
+    body: "{\"name\": \"{{ project_name }}\", \"scm_type\": \"{{ scm_type }}\", \"scm_url\": \"{{ scm_url }}\", \"scm_branch\": \"{{ scm_branch }}\", \"organization\": \"{{ organisation_id.json.results[0].id }}\", \"credential\": \"{{ credential_id.json.results[0].id }}\" }"
+    headers:
+      Content-Type: "application/json"
+    method: POST
+    status_code: 201,204
+    force_basic_auth: yes
+    body_format: json
+  tags:
+    - project
+

@@ -1,0 +1,20 @@
+---
+# defaults file for awx-install
+awx_host_port: 80
+awx_address: http://localhost:{{ awx_host_port }}/api/v2/
+
+default_admin_user: admin
+default_admin_password: password
+
+organisation: MonOrganisation
+
+project_name: monproject
+scm_type: git
+scm_url: http://51.15.6.183/user/role-ansible-tower.git
+scm_branch: master
+
+
+credential_name: user
+credential_type: 2
+git_user: user
+git_password: user-password
